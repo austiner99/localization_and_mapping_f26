@@ -46,8 +46,9 @@ class TestFunctionEvaluateJointPMF():
     def test_correct_for_two_dice_sum_and_two_dice_difference(self):
         """Test for the correct joint pmf for the sum of two 4-sided dice and the difference of two 6-sided dice."""
         sum_vals, diff_vals, sumdiff_pmf_dic = part2.evaluate_joint_pmf(part1.TwoDiceRoll, part1.two_dice_sum, part1.two_dice_difference, dice_sides=4)
-        sum_vals = np.sort(sum_vals) # sum_vals = np.sort(np.unique(sum_vals))
-        diff_vals = np.sort(diff_vals) # diff_vals = np.sort(np.unique(diff_vals))
+        sum_vals = np.sort(np.unique(sum_vals)) # sum_vals = np.sort(np.unique(sum_vals))
+        # diff_vals = np.sort(diff_vals) 
+        diff_vals = np.sort(np.unique(diff_vals))
         # Test values from two dice sum
         assert np.isclose(sum_vals[0], 2)
         assert np.isclose(sum_vals[1], 3)
@@ -76,8 +77,8 @@ class TestFunctionEvaluateJointPMF():
     def test_correct_for_two_dice_sum_and_two_dice_sum_plus_one(self):
         """Test for the correct joint pmf for the sum of two 4-sided dice and the sum of two 4-sided dice plus one."""
         sum_vals, sum_plus_one_vals, sumsum_plus_one_pmf_dic = part2.evaluate_joint_pmf(part1.TwoDiceRoll, part1.two_dice_sum, part1.two_dice_sum_plus_one, dice_sides=4)
-        sum_vals = np.sort(sum_vals)
-        sum_plus_one_vals = np.sort(sum_plus_one_vals)
+        sum_vals = np.sort(np.unique(sum_vals))
+        sum_plus_one_vals = np.sort(np.unique(sum_plus_one_vals))
         # Test values from two dice sum
         assert np.isclose(sum_vals[0], 2)
         assert np.isclose(sum_vals[1], 3)
@@ -106,8 +107,8 @@ class TestFunctionEvaluateJointPMF():
     def test_correct_for_two_dice_sum_and_weighted_two_dice_sum(self):
         """Test for the correct joint pmf for the sum of two 4-sided dice and the weighted sum of two 4-sided dice."""
         sum_vals, weighted_sum_vals, sumweighted_sum_pmf_dic = part2.evaluate_joint_pmf(part1.TwoDiceRoll, part1.two_dice_sum, part1.weighted_two_dice_sum, dice_sides=4)
-        sum_vals = np.sort(sum_vals)
-        weighted_sum_vals = np.sort(weighted_sum_vals)
+        sum_vals = np.sort(np.unique(sum_vals))
+        weighted_sum_vals = np.sort(np.unique(weighted_sum_vals))
         # Test values from two dice sum
         assert np.isclose(sum_vals[0], 2)
         assert np.isclose(sum_vals[1], 3)
