@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 from tqdm import tqdm
+import csv
+import pickle
 
 __author__ = "Joshua Mangelson"
 __copyright__ = "Copyright 2020, Joshua Mangelson, Brigham Young University"
@@ -132,6 +134,9 @@ class OccupancyGrid():
         cell_center = [x, y]
         return cell_center
  
+    def get_cell_odds(self, index):
+        return self.grid[index[1]][index[0]]
+
     @staticmethod
     def p_from_l(l):
         try:
@@ -179,7 +184,7 @@ class OccupancyGrid():
         # Note!!!!
         # grid cells should be indexed as self.grid[y_idx, x_idx]
 
-
+        self.grid[y_idx, x_idx] += l
         ##############################################
 
 class RobotState():
@@ -229,6 +234,10 @@ class OccupancyGridMap():
         self.p_occup = p_occup
         self.p_prior = p_prior
 
+        self.l_occup = np.log( self.p_occup / (1 - self.p_occup) )
+        self.l_free  = np.log( self.p_free  / (1 - self.p_free) )
+        self.l_prior = np.log( self.ogrid.prior / (1 - self.ogrid.prior) )
+
     def laser_range_inverse_sensor_model(self, x_idx, y_idx, x_t, z_t):
         """Return the logodds update for a given map cell, robot state, and meas.
 
@@ -248,7 +257,15 @@ class OccupancyGridMap():
 
         ###############################
         # Finish This Implementation!!
+        m_xc, m_yc = self.ogrid.get_cell_center(x_idx, y_idx)
+        r = np.sqrt( (m_xc - x_t.x)**2 + (m_yc - x_t.y)**2 )
 
+        if r < z_t - self.ogrid.resolution/2:
+          return self.l_free
+        elif r < z_t + self.ogrid.resolution/2:
+          return self.l_occup
+        else:
+          return self.l_prior
 
         #############################
 
@@ -272,8 +289,21 @@ class OccupancyGridMap():
 
         ####################################
         # Finish this implemenation!!
-        
+        z_possible = np.arange(0, max_range+self.ogrid.resolution/2, self.ogrid.resolution/2)
+        theta = x_t.theta + z_theta_t
 
+        # go along beam and find all cells that lie in line of sight
+        x = z_possible * np.cos(theta * np.pi/180) + x_t.x
+        y = z_possible * np.sin(theta * np.pi/180)  + x_t.y
+
+        # Mask out ones outside of the map
+        x_mask = np.logical_and(self.ogrid.xlim[0] <= x, x < self.ogrid.xlim[1])
+        y_mask = np.logical_and(self.ogrid.ylim[0] <= y, y < self.ogrid.ylim[1])
+        mask = np.logical_and(x_mask, y_mask)
+        
+        cell_index_list = self.ogrid.get_cell_index(x[mask], y[mask])
+
+        return np.unique(cell_index_list, axis=0)
         ####################################
                 
 
@@ -293,71 +323,33 @@ class OccupancyGridMap():
 
         #####################################
         # Finish this implemenation!!
-       
+        # get cells in the line of sight
+        # note we don't care about things much farther after the end of our laser
+        cells = self.find_cells_to_update_for_ray(x_t, z_theta_t, min(20, z_t+self.ogrid.resolution*2))
+        for x_idx, y_idx in cells:
+            # find odds of getting that measurement
+            l = self.laser_range_inverse_sensor_model(x_idx, y_idx, x_t, z_t)
 
+            # update model with that log odds
+            self.ogrid.update_cell_with_meas_logodds(x_idx, y_idx, l-self.l_prior)
         #####################################
 
 
 def main(datafile, plot_live, resolution):
-
-    # Setup parameters
-    p_free = 0.0
-    p_occup = 0.0
-    p_prior = 0.0
-
     # Make map
-    omap = OccupancyGridMap(resolution=resolution,
+    omap = OccupancyGrid(resolution=resolution,
                             xlim=[-20,50],
                             ylim=[-30,30],
-                            p_free=p_free, 
-                            p_occup=p_occup,
-                            p_prior=p_prior)
+                            prior=0.5)
 
-    # Load data
-    data = np.load(datafile)
-    x_t = data['x_t']
-    angles = data['angles']
-    z_t = data['z_t']
+    reader = csv.reader(open("data/ogm_ground_truth.csv"), delimiter=",")
+    x = list(reader)
+    omap.grid = np.array(x).astype("float")
 
-    print("Num Poses: ", x_t.shape[0])
+    omap.grid[omap.grid == 1] = 100
+    omap.grid[omap.grid == 0] = -100
 
-    num_lasers = len(angles)
-
-    # setup plot
-    if(plot_live):
-        plt.ion()
-    fig, ax = plt.subplots()
-    traj, = ax.plot([], [], 'b', ms=1.5, lw=.5, marker='o', markevery=10)
-
-    # Step through data
-    for i in tqdm(range(len(x_t))):
-
-        # Extract Robot State
-        X = RobotState(x_t[i,0], x_t[i,1], x_t[i,2])
-
-        # Process each ray
-        for j in range(num_lasers):
-            #################################
-            # Finish this implementation!!
-
-
-
-            #################################
-            pass # Allows program to be run before implementation is complete
-
-        # Plot every 10 steps and the last time step
-        if (plot_live and i % 10 == 0) or i == len(x_t)-1:
-            traj.set_xdata(x_t[:i,0])
-            traj.set_ydata(x_t[:i,1])
-            omap.ogrid.plot_grid(ax)
-            
-            fig.canvas.draw()
-            fig.canvas.flush_events()
-
-    plt.ioff()   
-    plt.show()
-
-    
+    pickle.dump(omap, open('data/map.p', 'wb'))
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Occupancy Grid Map")
