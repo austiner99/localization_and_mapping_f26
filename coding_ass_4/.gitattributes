@@ -1,0 +1,13 @@
+*.p binary
+*.mat binary
+*.mdl binary
+*.slx binary
+*.mlx binary
+*.mlapp binary
+*.mdlp binary
+*.slxp binary
+*.sldd binary
+*.xlsx binary
+*.jpg binary
+*.pdf binary
+*.docx binary

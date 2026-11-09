@@ -235,6 +235,7 @@ def main():
     print('Expected value (Joint of sum/diff) with {0}-sided Dice:'.format(num_dice_sides), e_value)
     sigma = covariance(sumdiff_pmf)
     print('Covariance (Joint of sum/diff) with {0}-sided Dice:'.format(num_dice_sides), sigma)
+    print('Sum and difference are uncorrelated because their covariance is zero.')
 
     # #Evaluate Joint PMF for the absolute diff. and diff. of two six-sided dice
     # abs_diff_vals, diff_vals, abs_diff_diff_pmf_dic = evaluate_joint_pmf(
@@ -269,6 +270,7 @@ def main():
     print('Expected value (Joint of sum/sum_plus_one) with {0}-sided Dice:'.format(num_dice_sides), e_value)
     sigma = covariance(sumsum_plus_one_pmf)
     print('Covariance (Joint of sum/sum_plus_one) with {0}-sided Dice:'.format(num_dice_sides), sigma)
+    print('Sum and sum plus one are positively correlated.')
 
     #Evaluate Joint PMF for the sum and (weighted sum of two six-sided dice
     sum_vals, weighted_sum_vals, sumweightedsum_pmf_dic = evaluate_joint_pmf(
@@ -286,6 +288,7 @@ def main():
     print('Expected value (Joint of sum/weightedsum) with {0}-sided Dice:'.format(num_dice_sides), e_value)
     sigma = covariance(sumweightedsum_pmf)
     print('Covariance (Joint of sum/weightedsum) with {0}-sided Dice:'.format(num_dice_sides), sigma)
+    print('Sum and weighted sum are positively correlated.')
     
 
     # #Evaluate Joint PMF for the sum and (sum+some) of two six-sided dice
